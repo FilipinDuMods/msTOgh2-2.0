@@ -120,7 +120,7 @@ def merge_tracks(midi, name_a, name_b, merged_name="MERGED"):
 # Editar 'exit' e 'auto' para remover.
 # --------------------------------------------
 exit = 0 # Coloque 1 para fechar sozinho
-auto = 1 # Coloque 1 para remover as perguntas
+auto = 0 # Coloque 1 para remover as perguntas
 
 click = '2' # 1 practice drums / 2 no practice drums
 instrument = '1' # 1 guitar/bass / 2 lead/rhythm
@@ -149,6 +149,7 @@ if (auto == 0):
 # --------------------------------------------
 # Processamento em batch
 # --------------------------------------------
+
 if __name__ == "__main__":
     midi_files = [f for f in glob.glob("*.mid") if not f.endswith("_gh2.mid")]
 
@@ -222,6 +223,7 @@ if __name__ == "__main__":
             delete_track(midi, "PART GUITAR EVENTS")
             delete_track(midi, "PART GUITAR NOTES")
 
+#########################################################################################################
 
             # -----------
             # PART BASS
@@ -254,6 +256,73 @@ if __name__ == "__main__":
             delete_track(midi, "PART BASS EVENTS")
             delete_track(midi, "PART BASS NOTES")
 
+#########################################################################################################
+
+            # -----------
+            # PART GUITAR COOP
+            # -----------
+            # Copiar eventos do PART GUITAR COOP para PART GUITAR COOP EVENTS
+            copy_events_only(midi, "PART GUITAR COOP", "PART GUITAR COOP EVENTS")
+            
+            # Copiar notas de PART GUITAR COOP para PART GUITAR COOP NOTES
+            copy_notes_only(midi, "PART GUITAR COOP", "PART GUITAR COOP NOTES", note_map=
+            {60:60, 61:61, 62:62, 63:63, 64:64, # easy
+            72:72, 73:73, 74:74, 75:75, 76:76, # medium
+            84:84, 85:85, 86:86, 87:87, 88:88, # hard
+            96:96, 97:97, 98:98, 99:99, 100:100, # expert
+            116: [67, 79, 91, 103]}) #star power
+            
+            # Copiar notas do PART GUITAR COOP GHL para PART GUITAR COOP NOTES
+            copy_notes_only(midi, "PART GUITAR COOP GHL", "COOP FRETMAP", note_map=
+            {98:40, 99:42, 100:44, 95:46, 96:48, 97:50, 86:51, 87:52, 88:53, 83:54, 84:55, 85:56})
+            rename_track_by_name(midi, "PART GUITAR COOP NOTES", "PART GUITAR COOP TEMP")
+            merge_tracks(midi, "COOP FRETMAP", "PART GUITAR COOP TEMP", merged_name="PART GUITAR COOP NOTES")
+            delete_track(midi, "PART GUITAR COOP TEMP")
+            delete_track(midi, "COOP FRETMAP")
+            delete_track(midi, "PART GUITAR COOP GHL")
+            
+            # Deletar o PART GUITAR COOP
+            delete_track(midi, "PART GUITAR COOP")
+            # Mesclar os PART GUITAR COOP temporários
+            merge_tracks(midi, "PART GUITAR COOP EVENTS", "PART GUITAR COOP NOTES", merged_name="PART GUITAR COOP")
+            # Deletar os PART GUITAR COOP temporários
+            delete_track(midi, "PART GUITAR COOP EVENTS")
+            delete_track(midi, "PART GUITAR COOP NOTES")
+
+#########################################################################################################
+
+            # -----------
+            # PART RHYTHM
+            # -----------
+            # Copiar eventos do PART RHYTHM para PART RHYTHM EVENTS
+            copy_events_only(midi, "PART RHYTHM", "PART RHYTHM EVENTS")
+            
+            # Copiar notas de PART RHYTHM para PART RHYTHM NOTES
+            copy_notes_only(midi, "PART RHYTHM", "PART RHYTHM NOTES", note_map=
+            {60:60, 61:61, 62:62, 63:63, 64:64, # easy
+            72:72, 73:73, 74:74, 75:75, 76:76, # medium
+            84:84, 85:85, 86:86, 87:87, 88:88, # hard
+            96:96, 97:97, 98:98, 99:99, 100:100, # expert
+            116: [67, 79, 91, 103]}) #star power
+            
+            # Copiar notas do PART RHYTHM GHL para PART RHYTHM NOTES
+            copy_notes_only(midi, "PART RHYTHM GHL", "RHYTHM FRETMAP", note_map=
+            {98:40, 99:42, 100:44, 95:46, 96:48, 97:50, 86:51, 87:52, 88:53, 83:54, 84:55, 85:56})
+            rename_track_by_name(midi, "PART RHYTHM NOTES", "PART RHYTHM TEMP")
+            merge_tracks(midi, "RHYTHM FRETMAP", "PART RHYTHM TEMP", merged_name="PART RHYTHM NOTES")
+            delete_track(midi, "PART RHYTHM TEMP")
+            delete_track(midi, "RHYTHM FRETMAP")
+            delete_track(midi, "PART RHYTHM GHL")
+            
+            # Deletar o PART RHYTHM
+            delete_track(midi, "PART RHYTHM")
+            # Mesclar os PART RHYTHM temporários
+            merge_tracks(midi, "PART RHYTHM EVENTS", "PART RHYTHM NOTES", merged_name="PART RHYTHM")
+            # Deletar os PART RHYTHM temporários
+            delete_track(midi, "PART RHYTHM EVENTS")
+            delete_track(midi, "PART RHYTHM NOTES")
+
+#########################################################################################################
 
             # -----------
             # BAND BASS
@@ -268,6 +337,8 @@ if __name__ == "__main__":
             delete_track(midi, "BAND BASS EVENTS")
             delete_track(midi, "BAND BASS NOTES")
 
+#########################################################################################################
+
             # -----------
             # BAND DRUMS
             # -----------
@@ -281,6 +352,8 @@ if __name__ == "__main__":
             delete_track(midi, "BAND DRUMS EVENTS")
             delete_track(midi, "BAND DRUMS NOTES")
 
+#########################################################################################################
+
             # -----------
             # BAND SINGER/KEYS
             # -----------
@@ -290,12 +363,25 @@ if __name__ == "__main__":
             if (metal == '2'): # se for BAND KEYS
                 copy_events_only(midi, "PART KEYS", "BAND KEYS")
 
+#########################################################################################################
+
+            # -----------
+            # EVENTS TRACK
+            # -----------
+            # Copiar eventos do EVENTS para EVENTS (formatação)
+            copy_events_only(midi, "EVENTS", "EVENTS FORMAT")
+            delete_track(midi, "EVENTS")
+            rename_track_by_name(midi, "EVENTS FORMAT", "EVENTS")
+
+#########################################################################################################
+
             # -----------
             # TRIGGERS TRACK
             # -----------
             if (click == '1'): # Com drums no practice
                 # Copiar notas de DRUMS e KEYFRAMES para tracks TRIGGER temporárias
-                copy_notes_only(midi, "PART KEYS", "TRIGGER KEYFRAMES", note_map={96: 48, 97: 49, 98: 50, 99: 52})
+                copy_notes_only(midi, "PART KEYS", "TRIGGER KEYFRAMES", note_map=
+                {96: 48, 97: 49, 98: 50, 99: 52})
                 copy_notes_only(midi, "PART DRUMS", "TRIGGER DRUMS", note_map={96: 24, 97: 25, 98: 26, 100: 26})
                 # Mesclar os TRIGGER temporários
                 merge_tracks(midi, "TRIGGER KEYFRAMES", "TRIGGER DRUMS", merged_name="TRIGGERS")
@@ -314,18 +400,25 @@ if __name__ == "__main__":
                 # Deletar PART KEYS
                 delete_track(midi, "PART KEYS")
 
+#########################################################################################################
 
+            # Remoção de tracks por escolha
+            if (instrument == '1'):
+                delete_track(midi, "PART GUITAR COOP")
+                delete_track(midi, "PART RHYTHM")
+            if (instrument == '2'):
+                delete_track(midi, "PART BASS")
+
+#########################################################################################################
 
             # --------------------------------------------
             # Finalização
             # --------------------------------------------
-
             # Salvar arquivo processado
             base, ext = os.path.splitext(input_path)
             output_path = f"{base}_gh2.mid"
             midi.save(output_path)
             print(f"Saved as: {output_path}\n")
-
             # Pause de arquivo batch, mas no python (gambiarra)
             if (exit == 0):
                 print("Press Enter to Exit")
