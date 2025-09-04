@@ -20,31 +20,10 @@ def delete_track(midi, track_name):
         for msg in track:
             if msg.type == "track_name" and msg.name == track_name:
                 del midi.tracks[i]
-                print(f"Track '{track_name}' deletada")
+                print(f"'{track_name}' deleted")
                 return True
-    print(f"Track '{track_name}' não encontrada")
+    print(f"'{track_name}' not found")
     return False
-
-def copy_events_only(midi, source_name, target_name):
-    #Copia apenas os eventos que não sejam notas (note_on/note_off) e nem track_name.
-    source = get_track_by_name(midi, source_name)
-    if not source:
-        print(f"Track '{source_name}' não encontrada")
-        return None
-    target = get_track_by_name(midi, target_name)
-    if not target:
-        target = MidiTrack([MetaMessage("track_name", name=target_name)])
-        midi.tracks.append(target)
-    # acumulador de delta relativo
-    cumulative_time = 0
-    for msg in source:
-        cumulative_time += msg.time
-        if msg.type not in ["track_name", "note_on", "note_off"]:
-            # copia o evento mantendo o delta correto
-            target.append(msg.copy(time=cumulative_time))
-            cumulative_time = 0
-    return target
-
 
 def rename_track_by_name(midi, old_name, new_name):
 # Renomeia a track que tem o nome old_name para new_name.
@@ -53,95 +32,123 @@ def rename_track_by_name(midi, old_name, new_name):
         for msg in track:
             if msg.type == "track_name" and msg.name == old_name:
                 msg.name = new_name
-        print(f"Track '{old_name}' renomeada para '{new_name}'")
+        print(f"'{old_name}' renamed to '{new_name}'")
         return True
-    print(f"Track '{old_name}' não encontrada")
+    print(f"'{old_name}' not found")
     return False
 
-def copy_notes_only(midi, source_name, target_name, note_map):
-# Copia somente notas de uma track para outra
+def ensure_track(midi, track_name):
+    # garante que a track exista, criando vazia se não existir
+    track = get_track_by_name(midi, track_name)
+    if track is None:
+        track = MidiTrack([MetaMessage("track_name", name=track_name)])
+        midi.tracks.append(track)
+    return track
+
+
+def copy_events_only(midi, source_name, target_name):
+    # copia apenas eventos que não sejam nota, cria destino vazio se origem não existir
+    target = ensure_track(midi, target_name)
     source = get_track_by_name(midi, source_name)
-    target = get_track_by_name(midi, target_name)
-    if not source:
-        print(f"Track '{source_name}' não encontrada")
-        return
-    if not target:
-        target = MidiTrack([MetaMessage("track_name", name=target_name)])
-        midi.tracks.append(target)
+    if source is None:
+        print(f"Track '{source_name}' not found, '{target_name}' stays empty.")
+        return target
     cumulative_time = 0
     for msg in source:
         cumulative_time += msg.time
-        if msg.type in ["note_on", "note_off"]:
-            if msg.note in note_map:
-                # transforma em lista pra aceitar tanto int quanto lista
-                destinos = note_map[msg.note]
-                if not isinstance(destinos, (list, tuple)):
-                    destinos = [destinos]
-                # pra cada pitch de destino, grava um evento com o mesmo time
-                for i, new_note in enumerate(destinos):
-                    target.append(Message( msg.type, note=new_note, velocity=msg.velocity, time=cumulative_time if i == 0 else 0))
-                cumulative_time = 0
+        if msg.type not in ["track_name", "note_on", "note_off"]:
+            target.append(msg.copy(time=cumulative_time))
+            cumulative_time = 0
+    print(f"'{source_name}' events copied to '{target_name}'")
+    return target
+
+
+def copy_notes_only(midi, source_name, target_name, note_map):
+    # copia apenas notas, cria destino vazio se origem não existir
+    target = ensure_track(midi, target_name)
+    source = get_track_by_name(midi, source_name)
+    if source is None:
+        print(f"Track '{source_name}' not found, '{target_name}' stays empty.")
+        return target
+    cumulative_time = 0
+    for msg in source:
+        cumulative_time += msg.time
+        if msg.type in ["note_on", "note_off"] and msg.note in note_map:
+            destinos = note_map[msg.note]
+            if not isinstance(destinos, (list, tuple)):
+                destinos = [destinos]
+            for i, new_note in enumerate(destinos):
+                target.append(Message(msg.type,
+                                      note=new_note,
+                                      velocity=msg.velocity,
+                                      time=cumulative_time if i == 0 else 0))
+            cumulative_time = 0
+    print(f"'{source_name}' notes copied to '{target_name}'")
+    return target
+
 
 def merge_tracks(midi, name_a, name_b, merged_name="MERGED"):
-# Junta duas tracks pelo nome e cria uma nova track com todos os eventos ordenados.
+    # mescla mesmo se uma ou ambas as tracks faltarem (gera vazia se preciso)
     track_a = get_track_by_name(midi, name_a)
     track_b = get_track_by_name(midi, name_b)
-    if not track_a or not track_b:
-        print(f"Não foi possível encontrar '{name_a}' ou '{name_b}' para merge")
-        return None
+    if track_a is None and track_b is None:
+        merged = MidiTrack([MetaMessage("track_name", name=merged_name)])
+        midi.tracks.append(merged)
+        print(f"No '{name_a}' or '{name_b}' to merge; created empty '{merged_name}'.")
+        return merged
+    events = []
+    for track in (track_a, track_b):
+        if track is None:
+            continue
+        abs_time = 0
+        for msg in track:
+            abs_time += msg.time
+            if msg.type != "track_name":
+                events.append((abs_time, msg))
     merged = MidiTrack([MetaMessage("track_name", name=merged_name)])
-    events_a = []
-    events_b = []
-    cumulative_time = 0
-    for msg in track_a:
-        cumulative_time += msg.time
-        if msg.type != "track_name":
-            events_a.append((cumulative_time, msg))
-    cumulative_time = 0
-    for msg in track_b:
-        cumulative_time += msg.time
-        if msg.type != "track_name":
-            events_b.append((cumulative_time, msg))
-    combined = sorted(events_a + events_b, key=lambda x: x[0])
-    prev_time = 0
-    for abs_time, msg in combined:
-        rel_time = abs_time - prev_time
-        merged.append(msg.copy(time=rel_time))
-        prev_time = abs_time
+    prev = 0
+    for t, msg in sorted(events, key=lambda x: x[0]):
+        merged.append(msg.copy(time=t - prev))
+        prev = t
     midi.tracks.append(merged)
-    print(f"Tracks '{name_a}' e '{name_b}' mescladas em '{merged_name}'")
+    print(f"Merged '{name_a}' + '{name_b}' into '{merged_name}'")
+    return merged
+
 
 # --------------------------------------------
 # Perguntas para alterar a funcionalidade
-# Remova os inputs para deixar automático
+# Editar 'exit' e 'auto' para remover.
 # --------------------------------------------
 exit = 0 # Coloque 1 para fechar sozinho
-click = 1
-instrument = 1
-metal = 1
-print("@ ------------------------------------------------------------------- @")
-print("@  IF YOUR CHART IS LEAD/RHYTHM, DON'T FORGET THE GUITAR COOP CHART!  @")
-print("@             (you can copy and paste from guitar chart)              @")
-print("@ ------------------------------------------------------------------- @")
-print("")
-print("")
-print ("Do you want the drums click in practice mode? (recommended if you are using multitracks)")
-print ("Type 1 if yes, 2 if not")
-click = input("Please enter 1 or 2: ")
-print("")
-print ("Is your chart GUITAR/BASS or LEAD/RHYTHM?")
-print ("Type 1 if BASS, 2 if RHYTHM")
-instrument = input("Please enter 1 or 2: ")
-print("")
-print("Is your chart 'metal_singer' or 'metal_keys'?")
-print("Type 1 if SINGER, 2 if KEYS")
-metal = input("Please enter 1 or 2: ")
-print("")
+auto = 0 # Coloque 1 para remover as perguntas
+
+click = 2 # 1 practice drums / 2 no practice drums
+instrument = 1 # 1 guitar/bass / 2 lead/rhythm
+metal = 1 # 1 band singer / 2 band keys
+
+if (auto == 0):
+    print("@ ------------------------------------------------------------------- @")
+    print("@  IF YOUR CHART IS LEAD/RHYTHM, DON'T FORGET THE GUITAR COOP CHART!  @")
+    print("@             (you can copy and paste from guitar chart)              @")
+    print("@ ------------------------------------------------------------------- @")
+    print("")
+    print("")
+    print ("Do you want the drums click in practice mode? (recommended if you are using multitracks)")
+    print ("Type 1 if yes, 2 if not")
+    click = input("Please enter 1 or 2: ")
+    print("")
+    print ("Is your chart GUITAR/BASS or LEAD/RHYTHM?")
+    print ("Type 1 if BASS, 2 if RHYTHM")
+    instrument = input("Please enter 1 or 2: ")
+    print("")
+    print("Is your chart 'metal_singer' or 'metal_keys'?")
+    print("Type 1 if SINGER, 2 if KEYS")
+    metal = input("Please enter 1 or 2: ")
+    print("")
 
 # --------------------------------------------
 # Processamento em batch
 # --------------------------------------------
-
 if __name__ == "__main__":
     midi_files = [f for f in glob.glob("*.mid") if not f.endswith("_gh2.mid")]
 
@@ -182,6 +189,7 @@ if __name__ == "__main__":
             # -----------
             # Copiar eventos do PART GUITAR para PART GUITAR EVENTS
             copy_events_only(midi, "PART GUITAR", "PART GUITAR EVENTS")
+            
             # Copiar notas de PART GUITAR para PART GUITAR NOTES
             copy_notes_only(midi, "PART GUITAR", "PART GUITAR NOTES", note_map=
             {60:60, 61:61, 62:62, 63:63, 64:64, # easy
@@ -189,6 +197,23 @@ if __name__ == "__main__":
             84:84, 85:85, 86:86, 87:87, 88:88, # hard
             96:96, 97:97, 98:98, 99:99, 100:100, # expert
             116: [67, 79, 91, 103]}) #star power
+            
+            # Copiar a nota BIG-NOTE (laranja) do PART KEYS para BIG-NOTE e depois PART GUITAR NOTES
+            copy_notes_only(midi, "PART KEYS", "BIG-NOTE", note_map={100: 110})
+            rename_track_by_name(midi, "PART GUITAR NOTES", "PART GUITAR TEMP")
+            merge_tracks(midi, "BIG-NOTE", "PART GUITAR TEMP", merged_name="PART GUITAR NOTES")
+            delete_track(midi, "PART GUITAR TEMP")
+            delete_track(midi, "BIG-NOTE")
+            
+            # Copiar notas do PART GUITAR GHL para PART GUITAR NOTES
+            copy_notes_only(midi, "PART GUITAR GHL", "GTR FRETMAP", note_map=
+            {98:40, 99:42, 100:44, 95:46, 96:48, 97:50, 86:51, 87:52, 88:53, 83:54, 84:55, 85:56})
+            rename_track_by_name(midi, "PART GUITAR NOTES", "PART GUITAR TEMP")
+            merge_tracks(midi, "GTR FRETMAP", "PART GUITAR TEMP", merged_name="PART GUITAR NOTES")
+            delete_track(midi, "PART GUITAR TEMP")
+            delete_track(midi, "GTR FRETMAP")
+            delete_track(midi, "PART GUITAR GHL")
+            
             # Deletar o PART GUITAR
             delete_track(midi, "PART GUITAR")
             # Mesclar os PART GUITAR temporários
