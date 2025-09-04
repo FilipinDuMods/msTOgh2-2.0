@@ -120,11 +120,11 @@ def merge_tracks(midi, name_a, name_b, merged_name="MERGED"):
 # Editar 'exit' e 'auto' para remover.
 # --------------------------------------------
 exit = 0 # Coloque 1 para fechar sozinho
-auto = 0 # Coloque 1 para remover as perguntas
+auto = 1 # Coloque 1 para remover as perguntas
 
-click = 2 # 1 practice drums / 2 no practice drums
-instrument = 1 # 1 guitar/bass / 2 lead/rhythm
-metal = 1 # 1 band singer / 2 band keys
+click = '2' # 1 practice drums / 2 no practice drums
+instrument = '1' # 1 guitar/bass / 2 lead/rhythm
+metal = '1' # 1 band singer / 2 band keys
 
 if (auto == 0):
     print("@ ------------------------------------------------------------------- @")
@@ -224,6 +224,38 @@ if __name__ == "__main__":
 
 
             # -----------
+            # PART BASS
+            # -----------
+            # Copiar eventos do PART BASS para PART BASS EVENTS
+            copy_events_only(midi, "PART BASS", "PART BASS EVENTS")
+            
+            # Copiar notas de PART BASS para PART BASS NOTES
+            copy_notes_only(midi, "PART BASS", "PART BASS NOTES", note_map=
+            {60:60, 61:61, 62:62, 63:63, 64:64, # easy
+            72:72, 73:73, 74:74, 75:75, 76:76, # medium
+            84:84, 85:85, 86:86, 87:87, 88:88, # hard
+            96:96, 97:97, 98:98, 99:99, 100:100, # expert
+            116: [67, 79, 91, 103]}) #star power
+            
+            # Copiar notas do PART BASS GHL para PART BASS NOTES
+            copy_notes_only(midi, "PART BASS GHL", "BASS FRETMAP", note_map=
+            {98:40, 99:42, 100:44, 95:46, 96:48, 97:50, 86:51, 87:52, 88:53, 83:54, 84:55, 85:56})
+            rename_track_by_name(midi, "PART BASS NOTES", "PART BASS TEMP")
+            merge_tracks(midi, "BASS FRETMAP", "PART BASS TEMP", merged_name="PART BASS NOTES")
+            delete_track(midi, "PART BASS TEMP")
+            delete_track(midi, "BASS FRETMAP")
+            delete_track(midi, "PART BASS GHL")
+            
+            # Deletar o PART BASS
+            delete_track(midi, "PART BASS")
+            # Mesclar os PART BASS temporários
+            merge_tracks(midi, "PART BASS EVENTS", "PART BASS NOTES", merged_name="PART BASS")
+            # Deletar os PART BASS temporários
+            delete_track(midi, "PART BASS EVENTS")
+            delete_track(midi, "PART BASS NOTES")
+
+
+            # -----------
             # BAND BASS
             # -----------
             # Copiar eventos do PART BASS para BAND BASS EVENTS
@@ -235,8 +267,6 @@ if __name__ == "__main__":
             # Deletar os BAND BASS temporários
             delete_track(midi, "BAND BASS EVENTS")
             delete_track(midi, "BAND BASS NOTES")
-            # Deletar o PART BASS
-            delete_track(midi, "PART BASS")
 
             # -----------
             # BAND DRUMS
