@@ -59,7 +59,7 @@ def rename_track_by_name(midi, old_name, new_name):
     return False
 
 def copy_notes_only(midi, source_name, target_name, note_map):
-# Copia notas de uma track para outra, mudando o pitch conforme note_map. Cria a target se não existir.
+# Copia somente notas de uma track para outra
     source = get_track_by_name(midi, source_name)
     target = get_track_by_name(midi, target_name)
     if not source:
@@ -73,8 +73,13 @@ def copy_notes_only(midi, source_name, target_name, note_map):
         cumulative_time += msg.time
         if msg.type in ["note_on", "note_off"]:
             if msg.note in note_map:
-                new_note = note_map[msg.note]
-                target.append(Message(msg.type, note=new_note, velocity=msg.velocity, time=cumulative_time))
+                # transforma em lista pra aceitar tanto int quanto lista
+                destinos = note_map[msg.note]
+                if not isinstance(destinos, (list, tuple)):
+                    destinos = [destinos]
+                # pra cada pitch de destino, grava um evento com o mesmo time
+                for i, new_note in enumerate(destinos):
+                    target.append(Message( msg.type, note=new_note, velocity=msg.velocity, time=cumulative_time if i == 0 else 0))
                 cumulative_time = 0
 
 def merge_tracks(midi, name_a, name_b, merged_name="MERGED"):
@@ -179,8 +184,11 @@ if __name__ == "__main__":
             copy_events_only(midi, "PART GUITAR", "PART GUITAR EVENTS")
             # Copiar notas de PART GUITAR para PART GUITAR NOTES
             copy_notes_only(midi, "PART GUITAR", "PART GUITAR NOTES", note_map=
-            {60:60, 61:61, 62:62, 63:63, 64:64, 72:72, 73:73, 74:74, 75:75, 76:76, 84:84, 85:85, 86:86, 87:87, 88:88, 
-            96:96, 97:97, 98:98, 99:99, 100:100, 116: 67, 116: 79, 116: 91, 116: 103}) # sp need fix
+            {60:60, 61:61, 62:62, 63:63, 64:64, # easy
+            72:72, 73:73, 74:74, 75:75, 76:76, # medium
+            84:84, 85:85, 86:86, 87:87, 88:88, # hard
+            96:96, 97:97, 98:98, 99:99, 100:100, # expert
+            116: [67, 79, 91, 103]}) #star power
             # Deletar o PART GUITAR
             delete_track(midi, "PART GUITAR")
             # Mesclar os PART GUITAR temporários
