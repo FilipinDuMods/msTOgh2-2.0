@@ -2,9 +2,99 @@ from mido import MidiFile, MidiTrack, MetaMessage, Message
 import os
 import glob
 
+###############################################################################################################################################################################################
+
+# --------------------------------------------
+# CONFIGURAÇÃO DE MIDI
+# --------------------------------------------
+
+# Fretmapping notes
+fretmapping_notes = {
+    98:40, 99:41, 100:42, 95:43, 96:44, 97:45, # expert GHL
+    86:46, 87:47, 88:48, 83:49, 84:50, 85:51, # hard GHL
+    74:52, 75:53, 76:54, 71:55, 72:56, 73:57, # medium GHL
+    62:58, 63:59, # easy GHL
+    
+    60: [69, 81, 93, 105], # Face-Off (PLAYER 1) - EASY 5th NOTE
+    61: [70, 82, 94, 106] # Face-Off (PLAYER 2) - EASY 6th NOTE
+    
+    }
+
+# GUITAR/BASS/COOP/RHYTHM notes
+instrument_notes = {
+    60:60, 61:61, 62:62, 63:63, 64:64, # easy
+    72:72, 73:73, 74:74, 75:75, 76:76, # medium
+    84:84, 85:85, 86:86, 87:87, 88:88, # hard
+    96:96, 97:97, 98:98, 99:99, 100:100, # expert
+    116: [67, 79, 91, 103] #star power
+    }
+    
+####################################################################################################################################################
+
+# --------------------------------------------
+# CONFIGURAÇÃO DE SCRIPT
+# --------------------------------------------
+
+exit = '1' # 1 closes the script automatically
+auto = '1' # 1 remove all the questions
+click = '2' # 1 set practice drums / 2 no practice drums
+instrument = '1' # 1 guitar/bass / 2 lead/rhythm
+metal = '1' # 1 band singer / 2 band keys
+
+####################################################################################################################################################
+
 # --------------------------------------------
 # Funções básicas de manipulação de MIDI
 # --------------------------------------------
+
+# Validador para GH2 - Naonemeu
+def validate_midi_events(midi, tracks_to_validate=None):
+# Valida e corrige eventos de texto em várias tracks.
+    if tracks_to_validate is None:
+        tracks_to_validate = ['PART GUITAR']  # Default, se não passar nada
+    valid_events = [
+        "[play]", "[idle]", "[wail_on]", "[wail_off]", "[solo_on]", "[solo_off]",
+        "[sync_wag]", "[sync_head_bang]", "[map HandMap_Default]", "[map HandMap_Linear]",
+        "[map HandMap_NoChords]", "[map HandMap_AllChords]", "[map HandMap_DropD]",
+        "[map HandMap_DropD2]", "[map HandMap_Solo]", "[map StrumMap_Default]",
+        "[map StrumMap_punk]", "[map StrumMap_softpick]", "[map StrumMap_SlapBass]",
+        "[nobeat]", "[half_time]", "[double_time]", "[allbeat]", "[half_tempo]", "[double_tempo]",
+        "[ow_face_on]", "[ow_face_off]"
+    ]
+    for track in midi.tracks:
+        # Verifica se a track está na lista a validar
+        track_name_msg = next((msg for msg in track if msg.type == 'track_name'), None)
+        if not track_name_msg or track_name_msg.name not in tracks_to_validate:
+            continue
+        track_name = track_name_msg.name
+        # Status de eventos críticos (solo, wail, ow_face)
+        event_status = {'solo': False, 'wail': False, 'ow_face': False}
+        for msg in track:
+            if msg.is_meta and msg.type == 'text':
+                text = msg.text.strip()
+                # Corrigir formatação de colchetes
+                if not text.startswith('['):
+                    text = f"[{text}"
+                if not text.endswith(']'):
+                    text = f"{text}]"
+                msg.text = text
+                # Checar se é um evento válido
+                if text not in valid_events:
+                    print(f"[Check local events] Invalid event in {track_name}: {text}")
+                # Checar status de eventos críticos
+                if text in ['[solo_on]', '[solo_off]', '[wail_on]', '[wail_off]', '[ow_face_on]', '[ow_face_off]']:
+                    event_name = text.rsplit('_', 1)[0][1:]  # solo, wail, ow_face
+                    event_type = text.split('_')[-1][:-1]   # on/off
+                    if event_type == 'on':
+                        if event_status[event_name]:
+                            print(f"[CRITICAL] Two '{event_name}_on' in sequence without a '{event_name}_off' in {track_name}")
+                        event_status[event_name] = True
+                    elif event_type == 'off':
+                        if not event_status[event_name]:
+                            print(f"[CRITICAL] Two '{event_name}_off' in sequence without a '{event_name}_on' in {track_name}")
+                        event_status[event_name] = False
+
+####################################################################################################################################################
 
 def get_track_by_name(midi, track_name):
 # Retorna a primeira track com o nome especificado.
@@ -13,6 +103,8 @@ def get_track_by_name(midi, track_name):
             if msg.type == "track_name" and msg.name == track_name:
                 return track
     return None
+    
+####################################################################################################################################################
 
 def delete_track(midi, track_name):
 # Deleta a primeira track usando o nome especificado.
@@ -24,6 +116,8 @@ def delete_track(midi, track_name):
                 return True
     print(f"'{track_name}' not found")
     return False
+    
+####################################################################################################################################################
 
 def rename_track_by_name(midi, old_name, new_name):
 # Renomeia a track que tem o nome old_name para new_name.
@@ -37,6 +131,8 @@ def rename_track_by_name(midi, old_name, new_name):
     print(f"'{old_name}' not found")
     return False
 
+####################################################################################################################################################    
+
 def ensure_track(midi, track_name):
     # garante que a track exista, criando vazia se não existir
     track = get_track_by_name(midi, track_name)
@@ -44,7 +140,8 @@ def ensure_track(midi, track_name):
         track = MidiTrack([MetaMessage("track_name", name=track_name)])
         midi.tracks.append(track)
     return track
-
+    
+####################################################################################################################################################
 
 def copy_events_only(midi, source_name, target_name):
     # copia apenas eventos que não sejam nota, cria destino vazio se origem não existir
@@ -61,6 +158,8 @@ def copy_events_only(midi, source_name, target_name):
             cumulative_time = 0
     print(f"'{source_name}' events copied to '{target_name}'")
     return target
+
+####################################################################################################################################################
 
 
 def copy_notes_only(midi, source_name, target_name, note_map):
@@ -86,6 +185,7 @@ def copy_notes_only(midi, source_name, target_name, note_map):
     print(f"'{source_name}' notes copied to '{target_name}'")
     return target
 
+####################################################################################################################################################
 
 def merge_tracks(midi, name_a, name_b, merged_name="MERGED"):
     # mescla mesmo se uma ou ambas as tracks faltarem (gera vazia se preciso)
@@ -114,20 +214,13 @@ def merge_tracks(midi, name_a, name_b, merged_name="MERGED"):
     print(f"Merged '{name_a}' + '{name_b}' into '{merged_name}'")
     return merged
 
-#########################################################################################################
+####################################################################################################################################################
 
 # --------------------------------------------
 # Perguntas para alterar a funcionalidade
-# Editar 'exit' e 'auto' para remover.
 # --------------------------------------------
-exit = 1 # Coloque 1 para fechar sozinho
-auto = 1 # Coloque 1 para remover as perguntas
 
-click = '2' # 1 practice drums / 2 no practice drums
-instrument = '1' # 1 guitar/bass / 2 lead/rhythm
-metal = '1' # 1 band singer / 2 band keys
-
-if (auto == 0):
+if (auto == '0'):
     print("@ ------------------------------------------------------------------- @")
     print("@  IF YOUR CHART IS LEAD/RHYTHM, DON'T FORGET THE GUITAR COOP CHART!  @")
     print("@             (you can copy and paste from guitar chart)              @")
@@ -147,7 +240,7 @@ if (auto == 0):
     metal = input("Please enter 1 or 2: ")
     print("")
 
-#########################################################################################################
+####################################################################################################################################################
 
 # --------------------------------------------
 # Processamento em batch
@@ -163,7 +256,7 @@ if __name__ == "__main__":
             print(f"Processing: {input_path}")
             midi = MidiFile(input_path)
 
-#########################################################################################################
+####################################################################################################################################################
 
             # --------------------------------------------
             # Exemplos para construir scripts MIDI
@@ -176,31 +269,16 @@ if __name__ == "__main__":
             rename_track_by_name(midi, "TRACK OLD NAME", "TRACK NEW NAME")
 
             # Exemplo 3: Copiar apenas eventos de uma track para outra (sem copiar as notas)
-            copy_events_only(midi, "PART DRUMS", "BAND DRUMS EVENTS")
+            copy_events_only(midi, "TRACK 1", "TRACK 2")
 
             # Exemplo 4: Copiar apenas notas de uma track para outra (sem copiar eventos)
-            copy_notes_only(midi, "PART DRUMS", "BAND DRUMS NOTES", note_map={96: 36, 100: 37})
+            copy_notes_only(midi, "TRACK 1", "TRACK 2", note_map={96:36, 100:37})
 
             # Exemplo 5: Mesclar tracks
             merge_tracks(midi, "TRACK 1", "TRACK 2", merged_name="NEW TRACK")
             '''
 
-#########################################################################################################
-
-            # --------------------------------------------
-            # Mapeamentos MIDI
-            # --------------------------------------------
-
-            # Fretmapping notes
-            fretmapping_notes = {98:40, 99:42, 100:44, 95:46, 96:48, 97:50, 86:51, 87:52, 88:53, 83:54, 84:55, 85:56}
-            # GUITAR/BASS/COOP/RHYTHM notes
-            instrument_notes = {
-            60:60, 61:61, 62:62, 63:63, 64:64, # easy
-            72:72, 73:73, 74:74, 75:75, 76:76, # medium
-            84:84, 85:85, 86:86, 87:87, 88:88, # hard
-            96:96, 97:97, 98:98, 99:99, 100:100, # expert
-            116: [67, 79, 91, 103] #star power
-            }
+####################################################################################################################################################
 
             # -----------
             # PART GUITAR
@@ -212,7 +290,7 @@ if __name__ == "__main__":
             copy_notes_only(midi, "PART GUITAR", "PART GUITAR NOTES", note_map= instrument_notes)
             
             # Copiar a nota BIG-NOTE (laranja) do PART KEYS para BIG-NOTE e depois PART GUITAR NOTES
-            copy_notes_only(midi, "PART KEYS", "BIG-NOTE", note_map={100: 110})
+            copy_notes_only(midi, "PART KEYS", "BIG-NOTE", note_map={100:110})
             rename_track_by_name(midi, "PART GUITAR NOTES", "PART GUITAR TEMP")
             merge_tracks(midi, "BIG-NOTE", "PART GUITAR TEMP", merged_name="PART GUITAR NOTES")
             delete_track(midi, "PART GUITAR TEMP")
@@ -234,7 +312,7 @@ if __name__ == "__main__":
             delete_track(midi, "PART GUITAR EVENTS")
             delete_track(midi, "PART GUITAR NOTES")
 
-#########################################################################################################
+####################################################################################################################################################
 
             # -----------
             # PART BASS
@@ -261,7 +339,7 @@ if __name__ == "__main__":
             delete_track(midi, "PART BASS EVENTS")
             delete_track(midi, "PART BASS NOTES")
 
-#########################################################################################################
+####################################################################################################################################################
 
             # -----------
             # PART GUITAR COOP
@@ -288,7 +366,7 @@ if __name__ == "__main__":
             delete_track(midi, "PART GUITAR COOP EVENTS")
             delete_track(midi, "PART GUITAR COOP NOTES")
 
-#########################################################################################################
+####################################################################################################################################################
 
             # -----------
             # PART RHYTHM
@@ -315,7 +393,7 @@ if __name__ == "__main__":
             delete_track(midi, "PART RHYTHM EVENTS")
             delete_track(midi, "PART RHYTHM NOTES")
 
-#########################################################################################################
+####################################################################################################################################################
 
             # -----------
             # BAND BASS
@@ -323,14 +401,14 @@ if __name__ == "__main__":
             # Copiar eventos do PART BASS para BAND BASS EVENTS
             copy_events_only(midi, "PART BASS", "BAND BASS EVENTS")
             # Copiar notas de PART BASS para BAND BASS NOTES
-            copy_notes_only(midi, "PART BASS", "BAND BASS NOTES", note_map={96: 36})
+            copy_notes_only(midi, "PART BASS", "BAND BASS NOTES", note_map={96:36})
             # Mesclar os BAND BASS temporários
             merge_tracks(midi, "BAND BASS EVENTS", "BAND BASS NOTES", merged_name="BAND BASS")
             # Deletar os BAND BASS temporários
             delete_track(midi, "BAND BASS EVENTS")
             delete_track(midi, "BAND BASS NOTES")
 
-#########################################################################################################
+####################################################################################################################################################
 
             # -----------
             # BAND DRUMS
@@ -338,14 +416,14 @@ if __name__ == "__main__":
             # Copiar eventos do PART DRUMS para BAND DRUMS EVENTS
             copy_events_only(midi, "PART DRUMS", "BAND DRUMS EVENTS")
             # Copiar notas de PART DRUMS para BAND DRUMS NOTES
-            copy_notes_only(midi, "PART DRUMS", "BAND DRUMS NOTES", note_map={96: 36, 100: 37})
+            copy_notes_only(midi, "PART DRUMS", "BAND DRUMS NOTES", note_map={96:36, 100:37})
             # Mesclar os BAND DRUMS temporários
             merge_tracks(midi, "BAND DRUMS EVENTS", "BAND DRUMS NOTES", merged_name="BAND DRUMS")
             # Deletar os BAND DRUMS temporários
             delete_track(midi, "BAND DRUMS EVENTS")
             delete_track(midi, "BAND DRUMS NOTES")
 
-#########################################################################################################
+####################################################################################################################################################
 
             # -----------
             # BAND SINGER/KEYS
@@ -356,7 +434,7 @@ if __name__ == "__main__":
             if (metal == '2'): # se for BAND KEYS
                 copy_events_only(midi, "PART KEYS", "BAND KEYS")
 
-#########################################################################################################
+####################################################################################################################################################
 
             # -----------
             # EVENTS TRACK
@@ -366,7 +444,7 @@ if __name__ == "__main__":
             delete_track(midi, "EVENTS")
             rename_track_by_name(midi, "EVENTS FORMAT", "EVENTS")
 
-#########################################################################################################
+####################################################################################################################################################
 
             # -----------
             # TRIGGERS TRACK
@@ -374,8 +452,8 @@ if __name__ == "__main__":
             if (click == '1'): # Com drums no practice
                 # Copiar notas de DRUMS e KEYFRAMES para tracks TRIGGER temporárias
                 copy_notes_only(midi, "PART KEYS", "TRIGGER KEYFRAMES", note_map=
-                {96: 48, 97: 49, 98: 50, 99: 52})
-                copy_notes_only(midi, "PART DRUMS", "TRIGGER DRUMS", note_map={96: 24, 97: 25, 98: 26, 100: 26})
+                {96:48, 97:49, 98:50, 99:52})
+                copy_notes_only(midi, "PART DRUMS", "TRIGGER DRUMS", note_map={96:24, 97:25, 98:26, 100:26})
                 # Mesclar os TRIGGER temporários
                 merge_tracks(midi, "TRIGGER KEYFRAMES", "TRIGGER DRUMS", merged_name="TRIGGERS")
                 # Deletar os TRIGGER temporários
@@ -387,13 +465,13 @@ if __name__ == "__main__":
                 delete_track(midi, "PART KEYS")
             if (click == '2'): # Sem drums no practice
                 # Copiar notas de PART KEYS para TRIGGERS
-                copy_notes_only(midi, "PART KEYS", "TRIGGERS", note_map={96: 48, 97: 49, 98: 50, 99: 52})
+                copy_notes_only(midi, "PART KEYS", "TRIGGERS", note_map={96:48, 97:49, 98:50, 99:52})
                 # Deletar PART DRUMS
                 delete_track(midi, "PART DRUMS")
                 # Deletar PART KEYS
                 delete_track(midi, "PART KEYS")
 
-#########################################################################################################
+####################################################################################################################################################
 
             # Remoção de tracks por escolha
             if (instrument == '1'):
@@ -402,7 +480,9 @@ if __name__ == "__main__":
             if (instrument == '2'):
                 delete_track(midi, "PART BASS")
 
-#########################################################################################################
+####################################################################################################################################################
+
+            validate_midi_events(midi, tracks_to_validate=['PART GUITAR', 'PART BASS', 'PART GUITAR COOP', 'PART RHYTHM'])
 
             # --------------------------------------------
             # Finalização
@@ -413,6 +493,8 @@ if __name__ == "__main__":
             midi.save(output_path)
             print(f"Saved as: {output_path}\n")
             # Pause de arquivo batch, mas no python (gambiarra)
-            if (exit == 0):
+            if (exit == '0'):
                 print("Press Enter to Exit")
                 exit = input()
+
+####################################################################################################################################################
