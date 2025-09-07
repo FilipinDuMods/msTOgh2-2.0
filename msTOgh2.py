@@ -2,7 +2,19 @@ from mido import MidiFile, MidiTrack, MetaMessage, Message
 import os
 import glob
 
-###############################################################################################################################################################################################
+####################################################################################################################################################
+
+# --------------------------------------------
+# CONFIGURAÇÃO DE SCRIPT
+# --------------------------------------------
+
+exit = '0' # 1 close the script automatically
+auto = '0' # 1 remove all the questions
+click = '2' # 1 set practice drums / 2 no practice drums
+instrument = '1' # 1 guitar/bass / 2 lead/rhythm
+metal = '1' # 1 band singer / 2 band keys
+
+####################################################################################################################################################
 
 # --------------------------------------------
 # CONFIGURAÇÃO DE MIDI
@@ -17,7 +29,6 @@ fretmapping_notes = {
     
     60: [69, 81, 93, 105], # Face-Off (PLAYER 1) - EASY 5th NOTE
     61: [70, 82, 94, 106] # Face-Off (PLAYER 2) - EASY 6th NOTE
-    
     }
 
 # GUITAR/BASS/COOP/RHYTHM notes
@@ -28,18 +39,6 @@ instrument_notes = {
     96:96, 97:97, 98:98, 99:99, 100:100, # expert
     116: [67, 79, 91, 103] #star power
     }
-    
-####################################################################################################################################################
-
-# --------------------------------------------
-# CONFIGURAÇÃO DE SCRIPT
-# --------------------------------------------
-
-exit = '1' # 1 closes the script automatically
-auto = '1' # 1 remove all the questions
-click = '2' # 1 set practice drums / 2 no practice drums
-instrument = '1' # 1 guitar/bass / 2 lead/rhythm
-metal = '1' # 1 band singer / 2 band keys
 
 ####################################################################################################################################################
 
@@ -51,7 +50,7 @@ metal = '1' # 1 band singer / 2 band keys
 def validate_midi_events(midi, tracks_to_validate=None):
 # Valida e corrige eventos de texto em várias tracks.
     if tracks_to_validate is None:
-        tracks_to_validate = ['PART GUITAR']  # Default, se não passar nada
+        tracks_to_validate = ['PART GUITAR', 'PART BASS', 'PART GUITAR COOP', 'PART RHYTHM']  # Default
     valid_events = [
         "[play]", "[idle]", "[wail_on]", "[wail_off]", "[solo_on]", "[solo_off]",
         "[sync_wag]", "[sync_head_bang]", "[map HandMap_Default]", "[map HandMap_Linear]",
@@ -103,7 +102,7 @@ def get_track_by_name(midi, track_name):
             if msg.type == "track_name" and msg.name == track_name:
                 return track
     return None
-    
+
 ####################################################################################################################################################
 
 def delete_track(midi, track_name):
@@ -116,7 +115,7 @@ def delete_track(midi, track_name):
                 return True
     print(f"'{track_name}' not found")
     return False
-    
+
 ####################################################################################################################################################
 
 def rename_track_by_name(midi, old_name, new_name):
@@ -140,7 +139,7 @@ def ensure_track(midi, track_name):
         track = MidiTrack([MetaMessage("track_name", name=track_name)])
         midi.tracks.append(track)
     return track
-    
+
 ####################################################################################################################################################
 
 def copy_events_only(midi, source_name, target_name):
@@ -272,7 +271,7 @@ if __name__ == "__main__":
             copy_events_only(midi, "TRACK 1", "TRACK 2")
 
             # Exemplo 4: Copiar apenas notas de uma track para outra (sem copiar eventos)
-            copy_notes_only(midi, "TRACK 1", "TRACK 2", note_map={96:36, 100:37})
+            copy_notes_only(midi, "TRACK 1", "TRACK 2", note_map={96:36, 97:37})
 
             # Exemplo 5: Mesclar tracks
             merge_tracks(midi, "TRACK 1", "TRACK 2", merged_name="NEW TRACK")
@@ -481,8 +480,6 @@ if __name__ == "__main__":
                 delete_track(midi, "PART BASS")
 
 ####################################################################################################################################################
-
-            validate_midi_events(midi, tracks_to_validate=['PART GUITAR', 'PART BASS', 'PART GUITAR COOP', 'PART RHYTHM'])
 
             # --------------------------------------------
             # Finalização
