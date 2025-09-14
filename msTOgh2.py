@@ -490,8 +490,9 @@ if __name__ == "__main__":
             midi.save(output_path)
             print(f"Saved as: {output_path}\n")
             # Pause de arquivo batch, mas no python (gambiarra)
-            if (exit == '0'):
-                print("Press Enter to Exit")
-                exit = input()
+
+if (exit == '0'):
+    print("Press Enter to Exit")
+    exit = input()
 
 ####################################################################################################################################################
