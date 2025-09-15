@@ -41,7 +41,7 @@ This way, all events will be listed and ready to use for global and local events
 ## Validator
 
 Function inside the script that checks local events to avoid erros and crashes, made by Naonemeu *https://github.com/naonemeu*  
-If there are any problems with your MIDI related to local events,
+If there is any problems with your MIDI related to local events,
 the script will show a warning in the prompt at the end of each individual MIDI conversion.
 
 ## Animation Tutorials
