@@ -33,6 +33,11 @@ or:
 
 https://drive.google.com/file/d/1y79LLlE5AnLvHCzaFQibd3NPAmb0keS3/view?usp=sharing
 
+## Adding GH2 Events to Moonscraper
+
+You can replace the files: `global_events.txt` and `local_events.txt` inside "MS Events" folder to "Config" folder of your Moonscraper installation.  
+This way, all events will be listed and ready to use for global and local events.
+
 ## Validator
 
 Function inside the script that checks local events to avoid erros and crashes, made by Naonemeu *https://github.com/naonemeu*  
