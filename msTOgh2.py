@@ -46,8 +46,8 @@ instrument_notes = {
 # Funções básicas de manipulação de MIDI
 # --------------------------------------------
 
+####################################################################################################################################################
 
-'''
 # Validador para GH2 - Naonemeu
 def validate_midi_events(midi, tracks_to_validate=None):
 # Valida e corrige eventos de texto em várias tracks.
@@ -94,7 +94,6 @@ def validate_midi_events(midi, tracks_to_validate=None):
                         if not event_status[event_name]:
                             print(f"[CRITICAL] Two '{event_name}_off' in sequence without a '{event_name}_on' in {track_name}")
                         event_status[event_name] = False
-'''
 
 ####################################################################################################################################################
 
@@ -133,7 +132,7 @@ def rename_track_by_name(midi, old_name, new_name):
     print(f"'{old_name}' not found")
     return False
 
-####################################################################################################################################################    
+####################################################################################################################################################
 
 def ensure_track(midi, track_name):
     # garante que a track exista, criando vazia se não existir
@@ -162,7 +161,6 @@ def copy_events_only(midi, source_name, target_name):
     return target
 
 ####################################################################################################################################################
-
 
 def copy_notes_only(midi, source_name, target_name, note_map):
     # copia apenas notas, cria destino vazio se origem não existir
