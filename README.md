@@ -30,11 +30,12 @@ To know which events and notes you need to place in Moonscraper to trigger anima
 https://docs.google.com/spreadsheets/d/1_l0bjYNhPV2ditcbrW0UQlz_jqsaiQSn/edit?usp=sharing&ouid=116981090282877738182&rtpof=true&sd=true
 
 or:  
+
 https://drive.google.com/file/d/1y79LLlE5AnLvHCzaFQibd3NPAmb0keS3/view?usp=sharing
 
 ## Validator
 
-Function inside the tool that checks local events to avoid erros and crashes, made by Naonemeu *https://github.com/naonemeu*  
+Function inside the script that checks local events to avoid erros and crashes, made by Naonemeu *https://github.com/naonemeu*  
 If there are any problems with your MIDI related to local events,
 the script will show a warning in the prompt at the end of each individual MIDI conversion.
 
