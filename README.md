@@ -32,10 +32,10 @@ https://docs.google.com/spreadsheets/d/1_l0bjYNhPV2ditcbrW0UQlz_jqsaiQSn/edit?us
 or:  
 https://drive.google.com/file/d/1y79LLlE5AnLvHCzaFQibd3NPAmb0keS3/view?usp=sharing
 
-## Validator (SOON)
+## Validator
 
 Script inside the tool that validates local and global events to avoid erros and crashes, made by Naonemeu  
-*Soon, testing*
+*Not sure how it's working yet, I need to make more tests*
 
 ## Animation Tutorials
 
