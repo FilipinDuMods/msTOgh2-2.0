@@ -18,6 +18,9 @@ Run the command `pip install mido` in cmd to install mido library.
 3. Run **msTOgh2.py** in the same folder the mid is.
 4. The script will produce a new `_gh2.mid` file ready for GH2.
 
+If you encounter errors or the MIDI conversion doesn’t work as expected, try
+running `run.bat` instead of the python file directly
+
 You may still need to drag the mid into **REAPER** and export to make sure the formatting is correct
 *(this was an issue in the first msTOgh2, I guess now it's fixed but I'm still not 100% sure)*
 
@@ -48,4 +51,4 @@ https://drive.google.com/file/d/1QTKDJxASvlqpkMWguREhy5do_XtDwFdc/view
 *by Stanley Jones: https://www.youtube.com/@S%C3%B3tanoRockerosGamers*
 
 https://github.com/naonemeu/gh2_tutorial/wiki/%5BX1%5D-Chart-%E2%80%90-Anima%C3%A7%C3%A3o-e-luzes
-*by Naonemeu (portuguese): https://www.youtube.com/@Naonemeugh2*
+*by Naonemeu: https://www.youtube.com/@Naonemeugh2*
