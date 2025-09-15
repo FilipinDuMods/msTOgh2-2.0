@@ -29,7 +29,7 @@ https://docs.google.com/spreadsheets/d/1_l0bjYNhPV2ditcbrW0UQlz_jqsaiQSn/edit?us
 or:  
 https://drive.google.com/file/d/1y79LLlE5AnLvHCzaFQibd3NPAmb0keS3/view?usp=sharing
 
-## Validator (WIP)
+## Validator (SOON)
 
 Script inside the tool that validates local and global events to avoid erros and crashes, made by Naonemeu  
 *Soon, testing*
@@ -41,7 +41,7 @@ Dump of animation references and tutorials you can read in the internet:
 https://archives.somnolescent.net/web/mari_v3/games/gh2/tutorials/animation-reference/  
 *by mariteaux: https://www.youtube.com/@mariteaux*
 
-https://www.scorehero.com/forum/viewtopic.php?t=1179
+https://www.scorehero.com/forum/viewtopic.php?t=1179  
 *by Riff: https://www.youtube.com/channel/UCEo6wS1tSl9e7_zdUhGt3Ew*
 
 https://drive.google.com/file/d/1QTKDJxASvlqpkMWguREhy5do_XtDwFdc/view  
