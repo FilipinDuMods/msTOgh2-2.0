@@ -1,3 +1,3 @@
-python msTOgh2.py
+python "msTOgh2.py"
 
 pause
