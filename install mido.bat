@@ -1,0 +1,3 @@
+pip install mido
+
+pause
