@@ -33,3 +33,19 @@ https://drive.google.com/file/d/1y79LLlE5AnLvHCzaFQibd3NPAmb0keS3/view?usp=shari
 
 Script inside the tool that validates local and global events to avoid erros and crashes, made by Naonemeu  
 *Soon, testing*
+
+## Animation Tutorials
+
+Dump of animation references and tutorials you can read in the internet:
+
+https://archives.somnolescent.net/web/mari_v3/games/gh2/tutorials/animation-reference/  
+*by mariteaux: https://www.youtube.com/@mariteaux*
+
+https://www.scorehero.com/forum/viewtopic.php?t=1179
+*by Riff: https://www.youtube.com/channel/UCEo6wS1tSl9e7_zdUhGt3Ew*
+
+https://drive.google.com/file/d/1QTKDJxASvlqpkMWguREhy5do_XtDwFdc/view  
+*by Stanley Jones: https://www.youtube.com/@S%C3%B3tanoRockerosGamers*
+
+https://github.com/naonemeu/gh2_tutorial/wiki/%5BX1%5D-Chart-%E2%80%90-Anima%C3%A7%C3%A3o-e-luzes
+*by Naonemeu (portuguese): https://www.youtube.com/@Naonemeugh2*
