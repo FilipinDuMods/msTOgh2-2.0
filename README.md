@@ -34,8 +34,8 @@ https://drive.google.com/file/d/1y79LLlE5AnLvHCzaFQibd3NPAmb0keS3/view?usp=shari
 
 ## Validator
 
-Script inside the tool that validates local and global events to avoid erros and crashes, made by Naonemeu  
-*Not sure how it's working yet, I need to make more tests*
+Function inside the tool that checks local events to avoid erros and crashes, made by Naonemeu  
+If there are any problems with your MIDI related to local events, the script will show a warning in the prompt at the end of each individual MID conversion.
 
 ## Animation Tutorials
 
