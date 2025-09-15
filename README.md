@@ -19,7 +19,7 @@ Run the command `pip install mido` in cmd to install mido library.
 4. The script will produce a new `_gh2.mid` file ready for GH2.
 
 You may still need to drag the mid into **REAPER** and export to make sure the formatting is correct
-*(this was an issue in the first msTOgh2, I guess now it's fixed but I'm still not sure)*
+*(this was an issue in the first msTOgh2, I guess now it's fixed but I'm still not 100% sure)*
 
 ## Animation Reference
 
