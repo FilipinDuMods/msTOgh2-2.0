@@ -485,6 +485,8 @@ if __name__ == "__main__":
             # --------------------------------------------
             # Finalização
             # --------------------------------------------
+            # Valida antes de salvar
+            validate_midi_events(midi)
             # Salvar arquivo processado
             base, ext = os.path.splitext(input_path)
             output_path = f"{base}_gh2.mid"
