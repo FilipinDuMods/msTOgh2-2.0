@@ -24,7 +24,10 @@ You may still need to drag the mid into **REAPER** and export to make sure the f
 ## Animation Reference
 
 To know which events and notes you need to place in Moonscraper to trigger animations in GH2, please check the reference spreadsheet:  
-test
+https://docs.google.com/spreadsheets/d/1_l0bjYNhPV2ditcbrW0UQlz_jqsaiQSn/edit?usp=sharing&ouid=116981090282877738182&rtpof=true&sd=true
+
+or:  
+https://drive.google.com/file/d/1y79LLlE5AnLvHCzaFQibd3NPAmb0keS3/view?usp=sharing
 
 ## Validator (WIP)
 
