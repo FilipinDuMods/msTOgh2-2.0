@@ -57,5 +57,5 @@ https://www.scorehero.com/forum/viewtopic.php?t=1179
 https://drive.google.com/file/d/1QTKDJxASvlqpkMWguREhy5do_XtDwFdc/view  
 *by Stanley Jones: https://www.youtube.com/@S%C3%B3tanoRockerosGamers*
 
-https://github.com/naonemeu/gh2_tutorial/wiki/%5BX1%5D-Chart-%E2%80%90-Anima%C3%A7%C3%A3o-e-luzes
+https://github.com/naonemeu/gh2_tutorial/wiki/%5BX1%5D-Chart-%E2%80%90-Anima%C3%A7%C3%A3o-e-luzes  
 *by Naonemeu: https://www.youtube.com/@Naonemeugh2*
